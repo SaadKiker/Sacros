@@ -4,13 +4,24 @@ import "./App.css";
 import HomeScreen from "./screens/HomeScreen";
 import FoodDatabaseScreen from "./screens/FoodDatabaseScreen";
 import GoalsScreen from "./screens/GoalsScreen";
-import { AppProvider } from "./context/AppContext";
+import { AppProvider, useAppContext } from "./context/AppContext";
 
-function App() {
+// Loading component to show while data is being loaded
+const LoadingIndicator = () => (
+  <div className="loading-overlay">
+    <div className="loading-spinner"></div>
+    <p className="loading-text">Loading data...</p>
+  </div>
+);
+
+// Main app content
+const AppContent = () => {
   const [activeTab, setActiveTab] = useState<'home' | 'database' | 'goals'>('home');
+  const { isLoading } = useAppContext();
 
   return (
-    <AppProvider>
+    <>
+      {isLoading && <LoadingIndicator />}
       <Router>
         <div className="app-container">
           <header className="app-header">
@@ -62,6 +73,14 @@ function App() {
           </main>
         </div>
       </Router>
+    </>
+  );
+};
+
+function App() {
+  return (
+    <AppProvider>
+      <AppContent />
     </AppProvider>
   );
 }

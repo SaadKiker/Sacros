@@ -1,5 +1,14 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { FoodItem, FoodEntry, Meal, DEFAULT_DAILY_TARGETS, DailyTargets } from '../types';
+import { 
+  initializeStorage, 
+  getFoods, 
+  saveFoods, 
+  getTodayMeals, 
+  saveTodayMeals,
+  getDailyTargets,
+  saveDailyTargets
+} from '../storage/storageService';
 
 interface AppContextType {
   // Foods database
@@ -28,6 +37,9 @@ interface AppContextType {
   setIsAddNewFoodModalOpen: (isOpen: boolean) => void;
   foodToEdit: FoodItem | null;
   setFoodToEdit: (food: FoodItem | null) => void;
+  
+  // Loading state
+  isLoading: boolean;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -41,6 +53,9 @@ const initialMeals: Meal[] = [
 ];
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  // Loading state
+  const [isLoading, setIsLoading] = useState(true);
+  
   // Foods database state
   const [foods, setFoods] = useState<FoodItem[]>([]);
   
@@ -56,76 +71,103 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   
   const [isAddNewFoodModalOpen, setIsAddNewFoodModalOpen] = useState(false);
   const [foodToEdit, setFoodToEdit] = useState<FoodItem | null>(null);
-
-  // Load foods from localStorage on initial render
+  
+  // Initialize storage and load data
   useEffect(() => {
-    const savedFoods = localStorage.getItem('sacros-foods');
-    if (savedFoods) {
-      setFoods(JSON.parse(savedFoods));
-    }
-    
-    const savedMeals = localStorage.getItem('sacros-today-meals');
-    if (savedMeals) {
+    const loadData = async () => {
       try {
-        const parsedMeals = JSON.parse(savedMeals);
+        // Initialize storage
+        await initializeStorage();
         
-        // Check if the saved meals structure matches our new structure
-        if (parsedMeals.length === 4 && 
-            parsedMeals[0].name === 'Breakfast' && 
-            parsedMeals[1].name === 'Lunch' && 
-            parsedMeals[2].name === 'Dinner' && 
-            parsedMeals[3].name === 'Snacks') {
-          setMeals(parsedMeals);
-        } else {
-          // If structure doesn't match, migrate the food entries to the new structure
-          const newMeals = [...initialMeals];
-          
-          // Function to find the appropriate meal index in the new structure
-          const getMealIndexInNewStructure = (oldMealName: string): number => {
-            if (oldMealName.includes('Breakfast')) return 0;
-            if (oldMealName.includes('Lunch')) return 1;
-            if (oldMealName.includes('Dinner')) return 2;
-            return 3; // All other meals (including Snacks) go to the Snacks category
-          };
-          
-          // Migrate food entries to the new structure
-          parsedMeals.forEach((oldMeal: Meal) => {
-            if (oldMeal.foods.length > 0) {
-              const newIndex = getMealIndexInNewStructure(oldMeal.name);
-              newMeals[newIndex].foods = [...newMeals[newIndex].foods, ...oldMeal.foods];
+        // Load foods
+        const savedFoods = await getFoods();
+        if (savedFoods && savedFoods.length > 0) {
+          setFoods(savedFoods);
+        }
+        
+        // Load meals
+        const savedMeals = await getTodayMeals();
+        if (savedMeals) {
+          try {
+            // Check if the saved meals structure matches our new structure
+            if (savedMeals.length === 4 && 
+                savedMeals[0].name === 'Breakfast' && 
+                savedMeals[1].name === 'Lunch' && 
+                savedMeals[2].name === 'Dinner' && 
+                savedMeals[3].name === 'Snacks') {
+              setMeals(savedMeals);
+            } else {
+              // If structure doesn't match, migrate the food entries to the new structure
+              const newMeals = [...initialMeals];
+              
+              // Function to find the appropriate meal index in the new structure
+              const getMealIndexInNewStructure = (oldMealName: string): number => {
+                if (oldMealName.includes('Breakfast')) return 0;
+                if (oldMealName.includes('Lunch')) return 1;
+                if (oldMealName.includes('Dinner')) return 2;
+                return 3; // All other meals (including Snacks) go to the Snacks category
+              };
+              
+              // Migrate food entries to the new structure
+              savedMeals.forEach((oldMeal: Meal) => {
+                if (oldMeal.foods.length > 0) {
+                  const newIndex = getMealIndexInNewStructure(oldMeal.name);
+                  newMeals[newIndex].foods = [...newMeals[newIndex].foods, ...oldMeal.foods];
+                }
+              });
+              
+              setMeals(newMeals);
+              // Save the new structure immediately
+              await saveTodayMeals(newMeals);
             }
-          });
-          
-          setMeals(newMeals);
-          // Save the new structure immediately
-          localStorage.setItem('sacros-today-meals', JSON.stringify(newMeals));
+          } catch (error) {
+            console.error('Error parsing saved meals:', error);
+            setMeals(initialMeals);
+          }
+        }
+        
+        // Load daily targets
+        const savedTargets = await getDailyTargets();
+        if (savedTargets) {
+          setDailyTargets(savedTargets);
         }
       } catch (error) {
-        console.error('Error parsing saved meals:', error);
-        setMeals(initialMeals);
+        console.error('Error loading data:', error);
+      } finally {
+        // Mark loading as complete
+        setIsLoading(false);
       }
-    }
+    };
     
-    const savedTargets = localStorage.getItem('sacros-daily-targets');
-    if (savedTargets) {
-      setDailyTargets(JSON.parse(savedTargets));
-    }
+    loadData();
   }, []);
   
-  // Save foods to localStorage whenever they change
+  // Save foods whenever they change, but only after initial loading is complete
   useEffect(() => {
-    localStorage.setItem('sacros-foods', JSON.stringify(foods));
-  }, [foods]);
+    if (!isLoading) {
+      saveFoods(foods).catch(error => {
+        console.error('Error saving foods:', error);
+      });
+    }
+  }, [foods, isLoading]);
   
-  // Save meals to localStorage whenever they change
+  // Save meals whenever they change, but only after initial loading is complete
   useEffect(() => {
-    localStorage.setItem('sacros-today-meals', JSON.stringify(meals));
-  }, [meals]);
+    if (!isLoading) {
+      saveTodayMeals(meals).catch(error => {
+        console.error('Error saving meals:', error);
+      });
+    }
+  }, [meals, isLoading]);
   
-  // Save daily targets to localStorage whenever they change
+  // Save daily targets whenever they change, but only after initial loading is complete
   useEffect(() => {
-    localStorage.setItem('sacros-daily-targets', JSON.stringify(dailyTargets));
-  }, [dailyTargets]);
+    if (!isLoading) {
+      saveDailyTargets(dailyTargets).catch(error => {
+        console.error('Error saving daily targets:', error);
+      });
+    }
+  }, [dailyTargets, isLoading]);
   
   // Food CRUD operations
   const addFood = (food: FoodItem) => {
@@ -145,9 +187,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     // Update state
     setFoods(newFoods);
     
-    // Save to localStorage
-    localStorage.setItem('sacros-foods', JSON.stringify(newFoods));
-    
     console.log('Food deleted');
   };
   
@@ -166,7 +205,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setMeals(newMeals);
   };
   
-  const resetDay = () => {
+  const resetDay = async () => {
     console.log("resetDay function in AppContext called");
     // Create a deep copy of initialMeals to ensure a proper reset
     const freshMeals = initialMeals.map(meal => ({
@@ -177,9 +216,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setMeals(freshMeals);
     console.log("setMeals called with freshMeals");
     
-    // Force localStorage update
-    localStorage.setItem('sacros-today-meals', JSON.stringify(freshMeals));
-    console.log("localStorage updated directly");
+    // Force file update
+    await saveTodayMeals(freshMeals);
+    console.log("meals file updated directly");
   };
   
   // Update daily targets
@@ -212,6 +251,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setIsAddNewFoodModalOpen,
         foodToEdit,
         setFoodToEdit,
+        
+        isLoading
       }}
     >
       {children}
