@@ -26,11 +26,6 @@ Sacros helps you easily log and calculate your daily food intake — focusing on
 ## ✅ Project Status
 ✅ First version complete.
 
-## ✅ Future Plans
-- Customizable macro goals.
-- Optional meal history.
-- Import/export functionality.
-
 ---
 
 > This app is developed for **personal use** and is not intended for commercial distribution.
