@@ -13,7 +13,7 @@ const GoalsScreen: React.FC = () => {
   });
 
   const [isEditing, setIsEditing] = useState(false);
-  const [calculatedCalories, setCalculatedCalories] = useState(0);
+  // const [calculatedCalories, setCalculatedCalories] = useState(0);
 
   // Calculate calories based on macros (4-4-9 rule)
   const calculateCalories = (protein: number, carbs: number, fats: number) => {
@@ -35,7 +35,7 @@ const GoalsScreen: React.FC = () => {
           name === 'carbs' ? numValue : prev.carbs,
           name === 'fats' ? numValue : prev.fats
         );
-        setCalculatedCalories(calculated);
+        //setCalculatedCalories(calculated);
         newGoals.calories = calculated;
       }
       

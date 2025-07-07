@@ -158,7 +158,7 @@ const HomeScreen: React.FC = () => {
         <h2>Meals</h2>
         {meals.map((meal, mealIndex) => {
           const mealTotals = getMealTotals(mealIndex);
-          const totalMacros = mealTotals.carbs + mealTotals.protein + mealTotals.fats;
+          // const totalMacros = mealTotals.carbs + mealTotals.protein + mealTotals.fats;
           
           return (
             <div key={meal.name} className="meal-card">
