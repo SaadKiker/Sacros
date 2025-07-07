@@ -1,7 +1,36 @@
-# Tauri + React + Typescript
+# Sacros
 
-This template should help get you started developing with Tauri, React and Typescript in Vite.
+Sacros is a minimal, offline-first desktop app for tracking daily macronutrients (Protein, Carbs, Fats, Calories) in a fast and simple way.
 
-## Recommended IDE Setup
+## ✅ Purpose
+Sacros helps you easily log and calculate your daily food intake — focusing only on **today's macros** with no distractions, no history, and no internet required.
 
-- [VS Code](https://code.visualstudio.com/) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer)
+## ✅ Key Features
+- Track macros per meal (Breakfast, Snack, Lunch, etc.).
+- Add foods from your personal database (with units like grams, liters, pieces).
+- Auto-calculates macros per meal and for the whole day.
+- Clean and minimal UI designed for quick daily usage.
+- Works fully offline (no accounts, no cloud).
+- Built using **Tauri + React + TypeScript**.
+
+## ✅ Tech Stack
+- **Tauri** (Rust backend, desktop bundling)
+- **React + TypeScript** (Frontend)
+- Local storage for data persistence.
+
+## ✅ Screens
+- Home Screen (daily dashboard with meals & macros).
+- Food Database Screen (manage food items).
+- Modals for adding foods to meals and database.
+
+## ✅ Project Status
+✅ First version complete.
+
+## ✅ Future Plans
+- Customizable macro goals.
+- Optional meal history.
+- Import/export functionality.
+
+---
+
+> This app is developed for **personal use** and is not intended for commercial distribution.
