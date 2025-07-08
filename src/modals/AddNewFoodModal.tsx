@@ -62,11 +62,20 @@ const AddNewFoodModal: React.FC<AddNewFoodModalProps> = ({
           [name]: 0
         });
       } else {
-        // Otherwise parse the value as a number
-        setFood({
-          ...food,
-          [name]: parseFloat(value) || 0
-        });
+        // Check specifically for "0" input
+        if (value === '0') {
+          setFood({
+            ...food,
+            [name]: 0
+          });
+        } else {
+          // Otherwise parse the value as a number
+          const parsedValue = parseFloat(value);
+          setFood({
+            ...food,
+            [name]: isNaN(parsedValue) ? 0 : parsedValue
+          });
+        }
       }
     } else {
       // For non-numeric fields (name, unit)
@@ -80,29 +89,49 @@ const AddNewFoodModal: React.FC<AddNewFoodModalProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Ensure all numeric fields have values (default to 0 if empty)
+    const submissionFood = {
+      ...food,
+      macroPer: food.macroPer || 0,
+      protein: food.protein || 0,
+      carbs: food.carbs || 0,
+      fats: food.fats || 0,
+      calories: food.calories || 0
+    };
+    
     // Calculate calories if not manually entered (using the 4-4-9 rule)
-    let calculatedCalories = food.calories;
+    let calculatedCalories = submissionFood.calories;
     if (calculatedCalories === 0) {
-      calculatedCalories = (food.protein * 4) + (food.carbs * 4) + (food.fats * 9);
+      calculatedCalories = (submissionFood.protein * 4) + (submissionFood.carbs * 4) + (submissionFood.fats * 9);
+      // Ensure maximum 2 decimal places
+      calculatedCalories = parseFloat(calculatedCalories.toFixed(2));
     }
     
-    onSaveFood({
+    // Ensure all numeric values have maximum 2 decimal places
+    const processedFood = {
       id: editFood ? editFood.id : `food-${Date.now()}`,
-      ...food,
-      calories: calculatedCalories,
-    });
+      name: submissionFood.name,
+      unit: submissionFood.unit,
+      macroPer: parseFloat(submissionFood.macroPer.toFixed(2)),
+      protein: parseFloat(submissionFood.protein.toFixed(2)),
+      carbs: parseFloat(submissionFood.carbs.toFixed(2)),
+      fats: parseFloat(submissionFood.fats.toFixed(2)),
+      calories: parseFloat(calculatedCalories.toFixed(2)),
+    };
+    
+    onSaveFood(processedFood);
     
     onClose();
   };
 
   // Helper function to display values in inputs
   const displayValue = (value: number) => {
-    // If editing or value is not 0, display the value
-    if (editFood || value !== 0) {
-      return value;
+    // If value is 0, display empty string (but allow 0 to be entered)
+    if (value === 0) {
+      return '';
     }
-    // Otherwise return empty string
-    return '';
+    // Otherwise return the actual value
+    return value;
   };
 
   if (!isOpen) return null;
@@ -141,9 +170,9 @@ const AddNewFoodModal: React.FC<AddNewFoodModalProps> = ({
               >
                 <option value="g">grams (g)</option>
                 <option value="ml">milliliters (ml)</option>
-                <option value="oz">ounces (oz)</option>
-                <option value="piece">piece</option>
                 <option value="serving">serving</option>
+                <option value="piece">piece</option>
+                <option value="tbsp">tbsp</option>
               </select>
             </div>
 
@@ -154,10 +183,9 @@ const AddNewFoodModal: React.FC<AddNewFoodModalProps> = ({
                 name="macroPer"
                 type="number"
                 min="0"
-                step="1"
+                step="0.01"
                 value={displayValue(food.macroPer)}
                 onChange={handleInputChange}
-                required
               />
               <span className="input-suffix">{food.unit}</span>
             </div>
@@ -170,10 +198,9 @@ const AddNewFoodModal: React.FC<AddNewFoodModalProps> = ({
               name="protein"
               type="number"
               min="0"
-              step="0.1"
+              step="0.01"
               value={displayValue(food.protein)}
               onChange={handleInputChange}
-              required
             />
           </div>
 
@@ -184,10 +211,9 @@ const AddNewFoodModal: React.FC<AddNewFoodModalProps> = ({
               name="carbs"
               type="number"
               min="0"
-              step="0.1"
+              step="0.01"
               value={displayValue(food.carbs)}
               onChange={handleInputChange}
-              required
             />
           </div>
 
@@ -198,10 +224,9 @@ const AddNewFoodModal: React.FC<AddNewFoodModalProps> = ({
               name="fats"
               type="number"
               min="0"
-              step="0.1"
+              step="0.01"
               value={displayValue(food.fats)}
               onChange={handleInputChange}
-              required
             />
           </div>
 
@@ -214,7 +239,7 @@ const AddNewFoodModal: React.FC<AddNewFoodModalProps> = ({
               name="calories"
               type="number"
               min="0"
-              step="1"
+              step="0.01"
               value={displayValue(food.calories)}
               onChange={handleInputChange}
             />

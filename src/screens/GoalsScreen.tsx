@@ -13,17 +13,21 @@ const GoalsScreen: React.FC = () => {
   });
 
   const [isEditing, setIsEditing] = useState(false);
-  // const [calculatedCalories, setCalculatedCalories] = useState(0);
+
+  // Format number to display with max 2 decimal places
+  const formatNumber = (value: number): string => {
+    return value.toFixed(2).replace(/\.?0+$/, '');
+  };
 
   // Calculate calories based on macros (4-4-9 rule)
   const calculateCalories = (protein: number, carbs: number, fats: number) => {
-    return (protein * 4) + (carbs * 4) + (fats * 9);
+    return parseFloat(((protein * 4) + (carbs * 4) + (fats * 9)).toFixed(2));
   };
 
   // Handle input changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    const numValue = parseInt(value) || 0;
+    const numValue = parseFloat(value) || 0;
     
     setGoals(prev => {
       const newGoals = { ...prev, [name]: numValue };
@@ -35,7 +39,6 @@ const GoalsScreen: React.FC = () => {
           name === 'carbs' ? numValue : prev.carbs,
           name === 'fats' ? numValue : prev.fats
         );
-        //setCalculatedCalories(calculated);
         newGoals.calories = calculated;
       }
       
@@ -45,7 +48,14 @@ const GoalsScreen: React.FC = () => {
 
   // Save goals
   const handleSave = () => {
-    updateDailyTargets(goals);
+    // Ensure all values are formatted to max 2 decimal places before saving
+    const formattedGoals = {
+      protein: parseFloat(goals.protein.toFixed(2)),
+      carbs: parseFloat(goals.carbs.toFixed(2)),
+      fats: parseFloat(goals.fats.toFixed(2)),
+      calories: Math.round(goals.calories)
+    };
+    updateDailyTargets(formattedGoals);
     setIsEditing(false);
   };
 
@@ -72,6 +82,7 @@ const GoalsScreen: React.FC = () => {
                 name="protein"
                 type="number"
                 min="0"
+                step="0.01"
                 value={goals.protein}
                 onChange={handleChange}
               />
@@ -84,6 +95,7 @@ const GoalsScreen: React.FC = () => {
                 name="carbs"
                 type="number"
                 min="0"
+                step="0.01"
                 value={goals.carbs}
                 onChange={handleChange}
               />
@@ -96,6 +108,7 @@ const GoalsScreen: React.FC = () => {
                 name="fats"
                 type="number"
                 min="0"
+                step="0.01"
                 value={goals.fats}
                 onChange={handleChange}
               />
@@ -116,60 +129,22 @@ const GoalsScreen: React.FC = () => {
             <div className="goals-summary">
               <div className="goal-item">
                 <div className="goal-label">Protein</div>
-                <div className="goal-value">{dailyTargets.protein}g</div>
+                <div className="goal-value">{formatNumber(dailyTargets.protein)}g</div>
               </div>
               
               <div className="goal-item">
                 <div className="goal-label">Carbs</div>
-                <div className="goal-value">{dailyTargets.carbs}g</div>
+                <div className="goal-value">{formatNumber(dailyTargets.carbs)}g</div>
               </div>
               
               <div className="goal-item">
                 <div className="goal-label">Fats</div>
-                <div className="goal-value">{dailyTargets.fats}g</div>
+                <div className="goal-value">{formatNumber(dailyTargets.fats)}g</div>
               </div>
               
               <div className="goal-item">
                 <div className="goal-label">Calories</div>
                 <div className="goal-value">{dailyTargets.calories} kcal</div>
-              </div>
-            </div>
-            
-            <div className="macro-ratio">
-              <h3>Macro Ratio</h3>
-              <div className="ratio-bar">
-                <div 
-                  className="ratio-segment protein" 
-                  style={{ 
-                    width: `${(dailyTargets.protein * 4 / dailyTargets.calories) * 100}%` 
-                  }}
-                ></div>
-                <div 
-                  className="ratio-segment carbs" 
-                  style={{ 
-                    width: `${(dailyTargets.carbs * 4 / dailyTargets.calories) * 100}%` 
-                  }}
-                ></div>
-                <div 
-                  className="ratio-segment fats" 
-                  style={{ 
-                    width: `${(dailyTargets.fats * 9 / dailyTargets.calories) * 100}%` 
-                  }}
-                ></div>
-              </div>
-              <div className="ratio-legend">
-                <div className="legend-item">
-                  <div className="legend-color protein"></div>
-                  <div className="legend-text">Protein {Math.round((dailyTargets.protein * 4 / dailyTargets.calories) * 100)}%</div>
-                </div>
-                <div className="legend-item">
-                  <div className="legend-color carbs"></div>
-                  <div className="legend-text">Carbs {Math.round((dailyTargets.carbs * 4 / dailyTargets.calories) * 100)}%</div>
-                </div>
-                <div className="legend-item">
-                  <div className="legend-color fats"></div>
-                  <div className="legend-text">Fats {Math.round((dailyTargets.fats * 9 / dailyTargets.calories) * 100)}%</div>
-                </div>
               </div>
             </div>
             

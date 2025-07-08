@@ -36,12 +36,12 @@ const AddFoodModal: React.FC<AddFoodModalProps> = ({
 
   // Calculate macros whenever selected food or quantity changes
   useEffect(() => {
-    if (selectedFood && quantity > 0) {
-      const ratio = quantity / selectedFood.macroPer;
+    if (selectedFood) {
+      const ratio = (quantity || 0) / selectedFood.macroPer;
       setCalculatedMacros({
-        protein: parseFloat((selectedFood.protein * ratio).toFixed(1)),
-        carbs: parseFloat((selectedFood.carbs * ratio).toFixed(1)),
-        fats: parseFloat((selectedFood.fats * ratio).toFixed(1)),
+        protein: parseFloat((selectedFood.protein * ratio).toFixed(2)),
+        carbs: parseFloat((selectedFood.carbs * ratio).toFixed(2)),
+        fats: parseFloat((selectedFood.fats * ratio).toFixed(2)),
         calories: Math.round(selectedFood.calories * ratio),
       });
     } else {
@@ -71,20 +71,24 @@ const AddFoodModal: React.FC<AddFoodModalProps> = ({
     // If the field is empty, store 0 in the state but display empty string
     if (value === '') {
       setQuantity(0);
+    } else if (value === '0') {
+      // Explicitly handle "0" input
+      setQuantity(0);
     } else {
       // Otherwise parse the value as a number
-      setQuantity(parseFloat(value) || 0);
+      const parsedValue = parseFloat(value);
+      setQuantity(isNaN(parsedValue) ? 0 : parsedValue);
     }
   };
 
   // Helper function to display values in inputs
   const displayValue = (value: number) => {
-    // If value is not 0, display the value
-    if (value !== 0) {
-      return value;
+    // If value is 0, display empty string (but allow 0 to be entered)
+    if (value === 0) {
+      return '';
     }
-    // Otherwise return empty string
-    return '';
+    // Otherwise return the actual value
+    return value;
   };
 
   const handleFoodSelect = (foodId: string) => {
@@ -120,13 +124,19 @@ const AddFoodModal: React.FC<AddFoodModalProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (selectedFood && quantity > 0) {
+    if (selectedFood) {
+      // Ensure quantity is at least 0
+      const finalQuantity = quantity || 0;
+      
       onAddFood({
         id: `${selectedFoodId}-${Date.now()}`,
         name: selectedFood.name,
-        quantity,
+        quantity: parseFloat(finalQuantity.toFixed(2)),
         unit: selectedFood.unit,
-        ...calculatedMacros,
+        protein: parseFloat(calculatedMacros.protein.toFixed(2)),
+        carbs: parseFloat(calculatedMacros.carbs.toFixed(2)),
+        fats: parseFloat(calculatedMacros.fats.toFixed(2)),
+        calories: calculatedMacros.calories,
       });
       onClose();
     }
@@ -192,14 +202,13 @@ const AddFoodModal: React.FC<AddFoodModalProps> = ({
               id="quantity"
               type="number"
               min="0"
-              step="0.1"
+              step="0.01"
               value={displayValue(quantity)}
               onChange={handleQuantityChange}
-              required
             />
           </div>
 
-          {selectedFood && quantity > 0 && (
+          {selectedFood && (
             <div className="calculated-macros">
               <h3>Calculated Macros:</h3>
               <p>Protein: {calculatedMacros.protein}g</p>
@@ -213,7 +222,7 @@ const AddFoodModal: React.FC<AddFoodModalProps> = ({
             <button type="button" onClick={onClose}>Cancel</button>
             <button 
               type="submit" 
-              disabled={!selectedFoodId || quantity <= 0}
+              disabled={!selectedFoodId}
             >
               Add to Meal
             </button>

@@ -18,6 +18,11 @@ const FoodDatabaseScreen: React.FC = () => {
   const [foodToDelete, setFoodToDelete] = useState<FoodItem | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
+  // Format number to display with max 2 decimal places
+  const formatNumber = (value: number): string => {
+    return value.toFixed(2).replace(/\.?0+$/, '');
+  };
+
   // Handler for adding a new food
   const handleAddNewFood = () => {
     setFoodToEdit(null);
@@ -91,10 +96,10 @@ const FoodDatabaseScreen: React.FC = () => {
                 <tr key={food.id}>
                   <td>{food.name}</td>
                   <td>{food.unit}</td>
-                  <td>{food.macroPer}</td>
-                  <td>{food.protein}g</td>
-                  <td>{food.carbs}g</td>
-                  <td>{food.fats}g</td>
+                  <td>{formatNumber(food.macroPer)}</td>
+                  <td>{formatNumber(food.protein)}g</td>
+                  <td>{formatNumber(food.carbs)}g</td>
+                  <td>{formatNumber(food.fats)}g</td>
                   <td>{food.calories} kcal</td>
                   <td className="actions-cell">
                     <button 

@@ -19,9 +19,14 @@ const HomeScreen: React.FC = () => {
   
   const [isResetDayModalOpen, setIsResetDayModalOpen] = useState(false);
 
+  // Format number to display with max 2 decimal places
+  const formatNumber = (value: number): string => {
+    return value.toFixed(2).replace(/\.?0+$/, '');
+  };
+
   // Calculate total macros for the day
   const dailyTotals = React.useMemo(() => {
-    return meals.reduce(
+    const totals = meals.reduce(
       (acc, meal) => {
         meal.foods.forEach((food) => {
           acc.protein += food.protein;
@@ -33,11 +38,19 @@ const HomeScreen: React.FC = () => {
       },
       { protein: 0, carbs: 0, fats: 0, calories: 0 }
     );
+    
+    // Format all values to have max 2 decimal places
+    return {
+      protein: parseFloat(totals.protein.toFixed(2)),
+      carbs: parseFloat(totals.carbs.toFixed(2)),
+      fats: parseFloat(totals.fats.toFixed(2)),
+      calories: Math.round(totals.calories)
+    };
   }, [meals]);
 
   // Calculate total macros for each meal
   const getMealTotals = (mealIndex: number) => {
-    return meals[mealIndex].foods.reduce(
+    const totals = meals[mealIndex].foods.reduce(
       (acc, food) => {
         acc.protein += food.protein;
         acc.carbs += food.carbs;
@@ -47,6 +60,14 @@ const HomeScreen: React.FC = () => {
       },
       { protein: 0, carbs: 0, fats: 0, calories: 0 }
     );
+    
+    // Format all values to have max 2 decimal places
+    return {
+      protein: parseFloat(totals.protein.toFixed(2)),
+      carbs: parseFloat(totals.carbs.toFixed(2)),
+      fats: parseFloat(totals.fats.toFixed(2)),
+      calories: Math.round(totals.calories)
+    };
   };
 
   // Calculate percentage for progress bars
@@ -98,9 +119,9 @@ const HomeScreen: React.FC = () => {
                 <span>Protein</span>
               </div>
               <span className="macro-values">
-                <span className="macro-current">{dailyTotals.protein}g</span>
+                <span className="macro-current">{formatNumber(dailyTotals.protein)}g</span>
                 <span className="macro-separator">/</span>
-                <span className="macro-target">{dailyTargets.protein}g</span>
+                <span className="macro-target">{formatNumber(dailyTargets.protein)}g</span>
               </span>
             </div>
             <div className="progress-bar-container">
@@ -118,9 +139,9 @@ const HomeScreen: React.FC = () => {
                 <span>Carbs</span>
               </div>
               <span className="macro-values">
-                <span className="macro-current">{dailyTotals.carbs}g</span>
+                <span className="macro-current">{formatNumber(dailyTotals.carbs)}g</span>
                 <span className="macro-separator">/</span>
-                <span className="macro-target">{dailyTargets.carbs}g</span>
+                <span className="macro-target">{formatNumber(dailyTargets.carbs)}g</span>
               </span>
             </div>
             <div className="progress-bar-container">
@@ -138,9 +159,9 @@ const HomeScreen: React.FC = () => {
                 <span>Fats</span>
               </div>
               <span className="macro-values">
-                <span className="macro-current">{dailyTotals.fats}g</span>
+                <span className="macro-current">{formatNumber(dailyTotals.fats)}g</span>
                 <span className="macro-separator">/</span>
-                <span className="macro-target">{dailyTargets.fats}g</span>
+                <span className="macro-target">{formatNumber(dailyTargets.fats)}g</span>
               </span>
             </div>
             <div className="progress-bar-container">
@@ -190,12 +211,12 @@ const HomeScreen: React.FC = () => {
                       
                       {/* Second row: Quantity and macros */}
                       <div className="food-row second-row">
-                        <div className="food-quantity">{food.quantity} {food.unit}</div>
+                        <div className="food-quantity">{formatNumber(food.quantity)} {food.unit}</div>
                         <div style={{ display: 'flex', alignItems: 'center' }}>
                           <div className="food-macros">
-                            <span className="macro protein">P: {food.protein}g</span>
-                            <span className="macro carbs">C: {food.carbs}g</span>
-                            <span className="macro fats">F: {food.fats}g</span>
+                            <span className="macro protein">P: {formatNumber(food.protein)}g</span>
+                            <span className="macro carbs">C: {formatNumber(food.carbs)}g</span>
+                            <span className="macro fats">F: {formatNumber(food.fats)}g</span>
                           </div>
                           <div style={{ width: '2.5rem' }}></div>
                         </div>
@@ -207,15 +228,15 @@ const HomeScreen: React.FC = () => {
                   {meal.foods.length > 0 && (
                     <div className="meal-totals">
                       <div className="total-column">
-                        <div className="total-number protein">{mealTotals.protein}g</div>
+                        <div className="total-number protein">{formatNumber(mealTotals.protein)}g</div>
                         <div className="total-label">Protein</div>
                       </div>
                       <div className="total-column">
-                        <div className="total-number carbs">{mealTotals.carbs}g</div>
+                        <div className="total-number carbs">{formatNumber(mealTotals.carbs)}g</div>
                         <div className="total-label">Carbohydrate</div>
                       </div>
                       <div className="total-column">
-                        <div className="total-number fats">{mealTotals.fats}g</div>
+                        <div className="total-number fats">{formatNumber(mealTotals.fats)}g</div>
                         <div className="total-label">Fat</div>
                       </div>
                       <div className="total-column">
