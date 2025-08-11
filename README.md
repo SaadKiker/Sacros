@@ -26,7 +26,3 @@ Sacros helps you easily log and calculate your daily food intake — focusing on
 
 ## ✅ Project Status
 ✅ First version complete.
-
----
-
-> This app is developed for **personal use** and is not intended for commercial distribution.
