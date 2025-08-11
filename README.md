@@ -1,7 +1,7 @@
 # Sacros
 
 Sacros is a minimal, offline-first desktop app for tracking daily macronutrients (Protein, Carbs, Fats, Calories) in a fast and simple way.
-You can now also try it online: 🌐 sacros-site.vercel.app
+You can now also try it online: 🌐 https://sacros-site.vercel.app/
 
 ## ✅ Purpose
 Sacros helps you easily log and calculate your daily food intake — focusing only on **today's macros** with no distractions, no history, and no internet required.
